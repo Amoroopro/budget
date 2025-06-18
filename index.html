@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Reis Budget</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      width: 300px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .budget-box {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .budget-box p {
+      margin: 5px 0;
+    }
+    .green {
+      color: green;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #101827;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .uitgaven {
+      background: #fafafa;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .uitgaven p {
+      color: #777;
+      margin: 0;
+    }
+    #uitgegeven {
+      color: #FF0000;
+      font-weight: bold
+    } 
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Reis Budget</h2>
+
+    <input type="number" id="nieuwBudget" placeholder="Stel je budget in (€)">
+    <button onclick="stelBudgetIn()">Budget instellen</button>
+
+    <div class="budget-box">
+      <p>Budget: <strong>€<span id="budget">0.00</span></strong></p>
+      <p>Uitgegeven: €<span id="uitgegeven">0.00</span></p>
+      <p>Resterend: <span class="green">€<span id="resterend">0.00</span></span></p>
+    </div>
+
+    <input type="number" id="bedrag" placeholder="Bedrag (€)">
+    <input type="text" id="notitie" placeholder="Notitie (optioneel)">
+    <button onclick="toevoegen()">+ Toevoegen</button>
+
+    <div class="uitgaven">
+      <h4>Laatste uitgaven</h4>
+      <div id="uitgavenlijst">
+        <p>Nog geen uitgaven</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let budget = parseFloat(localStorage.getItem("budget")) || 0;
+    let uitgegeven = parseFloat(localStorage.getItem("uitgegeven")) || 0;
+    let uitgaven = JSON.parse(localStorage.getItem("uitgaven")) || [];
+
+    function updateUI() {
+      document.getElementById("budget").innerText = budget.toFixed(2);
+      document.getElementById("uitgegeven").innerText = uitgegeven.toFixed(2);
+      document.getElementById("resterend").innerText = (budget - uitgegeven).toFixed(2);
+
+      const lijst = document.getElementById("uitgavenlijst");
+      lijst.innerHTML = "";
+      if (uitgaven.length === 0) {
+        lijst.innerHTML = "<p>Nog geen uitgaven</p>";
+      } else {
+        uitgaven.slice().reverse().forEach(u => {
+          const p = document.createElement("p");
+          p.innerText = `- €${u.bedrag.toFixed(2)} ${u.notitie ? "(" + u.notitie + ")" : ""}`;
+          lijst.appendChild(p);
+        });
+      }
+    }
+
+    function stelBudgetIn() {
+      const nieuwBudget = parseFloat(document.getElementById("nieuwBudget").value);
+      if (!isNaN(nieuwBudget) && nieuwBudget > 0) {
+        budget = nieuwBudget;
+        uitgegeven = 0;
+        uitgaven = [];
+        slaOp();
+        updateUI();
+      }
+    }
+
+    function toevoegen() {
+      const bedragInput = document.getElementById("bedrag");
+      const notitieInput = document.getElementById("notitie");
+      const bedrag = parseFloat(bedragInput.value);
+      const notitie = notitieInput.value;
+
+      if (isNaN(bedrag) || bedrag <= 0) return;
+
+      uitgegeven += bedrag;
+      uitgaven.push({ bedrag, notitie });
+
+      slaOp();
+      updateUI();
+
+      bedragInput.value = "";
+      notitieInput.value = "";
+    }
+
+    function slaOp() {
+      localStorage.setItem("budget", budget);
+      localStorage.setItem("uitgegeven", uitgegeven);
+      localStorage.setItem("uitgaven", JSON.stringify(uitgaven));
+    }
+
+    // init
+    updateUI();
+  </script>
+</body>
+</html>
